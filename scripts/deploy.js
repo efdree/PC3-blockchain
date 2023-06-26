@@ -30,6 +30,12 @@ async function deployGoerli() {
   // Crear un gnosis safe en https://gnosis-safe.io/app/
   // Extraer el address del gnosis safe y pasarlo al contrato con un setter
   var gnosis = { address: "" };
+
+  // deploy usdc
+  // deploy miprimertoken
+  // deploy contrato compra venta
+
+  // npx hardhat --network run scripts/deploy.js
 }
 
 // deployMumbai()

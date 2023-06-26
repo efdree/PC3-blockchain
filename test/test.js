@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const { time } = require("@nomicfoundation/hardhat-network-helpers");
+const { time, loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
 const { getRole, deploySC, deploySCNoUp, ex, pEth } = require("../utils");
 
@@ -25,9 +25,21 @@ describe("MI PRIMER TOKEN TESTING", function () {
   // Estos dos métodos a continuación publican los contratos en cada red
   // Se usan en distintos tests de manera independiente
   // Ver ejemplo de como instanciar los contratos en deploy.js
-  async function deployNftSC() {}
+  async function deployNftSC() {
+    const MiPrimerNft = await ethers.getContractFactory("MiPrimerNft");
+    const miPrimerNft = await MiPrimerNft.deploy(
+      _collectionName, _collectionSymbol
+    )
+    tx = await miPrimerToken.deployed();
+    await tx.deployTransaction.wait(5);
+  }
 
-  async function deployPublicSaleSC() {}
+  async function deployPublicSaleSC() {
+    const PublicSale = await ethers.getContractFactory("PublicSale");
+    const publicSale = await PublicSale.deploy(miPrimerToken.address);
+    tx = await publicSale.deploy();
+    await tx.deployNftSC.wait(5);
+  }
 
   describe("Mi Primer Nft Smart Contract", () => {
     // Se publica el contrato antes de cada test
@@ -35,19 +47,42 @@ describe("MI PRIMER TOKEN TESTING", function () {
       await deployNftSC();
     });
 
-    it("Verifica nombre colección", async () => {});
+    it("Verifica nombre colección", async () => {
+      var {testing} = await loadFixture(deployNftSC);
+      var name = await testing.name();
+      expect(name).to.be.equal("Mi Primer NFT");
+    });
 
-    it("Verifica símbolo de colección", async () => {});
+    it("Verifica símbolo de colección", async () => {
+      var {testing} = await loadFixture(deployNftSC);
+      var symbol = await testing.symbol();
+      expect(symbol).to.be.equal("MPRNFT");
+    });
 
-    it("No permite acuñar sin privilegio", async () => {});
+    it("No permite acuñar sin privilegio", async () => {
+      var {testing} = await loadFixture(deployNftSC);
+      var mintNTF = await testing.safeMint();
+      expect(mintNTF(owner, miPrimerToken)).to.be(true);
+    });
 
-    it("No permite acuñar doble id de Nft", async () => {});
+    it("No permite acuñar doble id de Nft", async () => {
+      var {testing} = await loadFixture(deployNftSC);
+      var mintNTF = await testing.safeMint();
+      expect(mintNTF(owner, miPrimerToken)).to.be(unique);
+    });
 
     it("Verifica rango de Nft: [1, 30]", async () => {
       // Mensaje error: "NFT: Token id out of range"
+      var {testing} = await loadFixture(deployNftSC);
+      var mintNTF = await testing.safeMint();
+      expect(mintNTF(owner, 0)).to.be.revertedWith("NFT: Token id out of range");
     });
 
-    it("Se pueden acuñar todos (30) los Nfts", async () => {});
+    it("Se pueden acuñar todos (30) los Nfts", async () => {
+      var {testing} = await loadFixture(deployNftSC);
+      var mintNTF = await testing.safeMint();
+      expect(mintNTF(owner, [0-29])).to.be(true);
+    });
   });
 
   describe("Public Sale Smart Contract", () => {
@@ -56,13 +91,29 @@ describe("MI PRIMER TOKEN TESTING", function () {
       await deployPublicSaleSC();
     });
 
-    it("No se puede comprar otra vez el mismo ID", async () => {});
+    it("No se puede comprar otra vez el mismo ID", async () => {
+      var {testing} = await loadFixture(deployPublicSaleSC);
+      var mintNTF = await testing.purchaseNftById();
+      expect(mintNTF(miPrimerToken)).to.be(unique);
+    });
 
-    it("IDs aceptables: [1, 30]", async () => {});
+    it("IDs aceptables: [1, 30]", async () => {
+      var {testing} = await loadFixture(deployPublicSaleSC);
+      var mintNTF = await testing.purchaseNftById();
+      expect(mintNTF([0-29])).to.be(unique);
+    });
 
-    it("Usuario no dio permiso de MiPrimerToken a Public Sale", async () => {});
+    it("Usuario no dio permiso de MiPrimerToken a Public Sale", async () => {
+      var {testing} = await loadFixture(deployPublicSaleSC);
+      var mintNTF = await testing.mintToken();
+      expect(mintNTF(msg.sender, 1)).to.be.allowed(true);
+    });
 
-    it("Usuario no tiene suficientes MiPrimerToken para comprar", async () => {});
+    it("Usuario no tiene suficientes MiPrimerToken para comprar", async () => {
+      var {testing} = await loadFixture(deployPublicSaleSC);
+      var mintNTF = await testing.mintToken();
+      expect(mintNTF(msg.sender, 10)).to.be.equal("10");
+    });
 
     describe("Compra grupo 1 de NFT: 1 - 10", () => {
       it("Emite evento luego de comprar", async () => {
