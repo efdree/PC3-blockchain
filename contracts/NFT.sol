@@ -5,8 +5,8 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradable.sol";
 
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 
 contract MiPrimerNft is
     Initializable,
@@ -16,6 +16,7 @@ contract MiPrimerNft is
 {
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+    bytes32 public contract UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     constructor() /**ERC721("MiPrimerNft", "MPRNFT") */ {
         _disableInitializers();
@@ -47,13 +48,13 @@ contract MiPrimerNft is
         address to,
         uint256 tokenId
     ) public onlyRole(MINTER_ROLE) {
-        _safeMint(to, tokenId);
         // Se hacen dos validaciones
         // 1 - Dicho id no haya sido acuñado antes
-        require(_exists(tokenId), "The token was mint before");
+        require(!_exists(tokenId), "The token was mint before");
         // 2 - Id se encuentre en el rando inclusivo de 1 a 30
-        require(tokenId > 30, "Public Sale: id must be between 1 and 30");
+        require(tokenId < 30, "Public Sale: id must be between 1 and 30");
         //      * Mensaje de error: "Public Sale: id must be between 1 and 30"
+        _safeMint(to, tokenId);
     }
 
     function supportsInterface(

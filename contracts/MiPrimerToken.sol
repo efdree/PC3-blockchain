@@ -14,6 +14,9 @@ contract UpgradeableMiPrimerToken is
 {
     function initialize() public initializer {
         __ERC20_init("MiPrimerToken", "MPTKN");
+        __Ownable_init();
+        __UUPSUpgradeable_init();
+
         _mint(msg.sender, 100000 * 10 ** decimals());
     }
 
