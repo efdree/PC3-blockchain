@@ -27,12 +27,13 @@ describe("MI PRIMER TOKEN TESTING", function () {
   // Se usan en distintos tests de manera independiente
   // Ver ejemplo de como instanciar los contratos en deploy.js
   async function deployNftSC() {
-    nftContract = await deployNftSC("NFTUpgradeable", []);
-    await ex(nftContract, "grantRole", [MINTER_ROLE, alice.address], "GR");
+    nftContract = await deploySC("MiPrimerNft", []);
+   // nftContract["grantRole(bytes32,address)"](MINTER_ROLE, alice.address);
+    await ex(nftContract, "grantRole", [MINTER_ROLE, alice.address]);
   }
 
   async function deployPublicSaleSC() {
-    miPrimerToken = await deploySC("TokenUpgradeable", []);
+    miPrimerToken = await deploySC("UpgradeableMiPrimerToken", []);
     publicSale = await deploySC("PublicSale", []);
     await ex(publicSale, "setToken", [miPrimerToken.address], "Token");
     await ex(publicSale, "setGnosisWallet", [gnosis.address], "SGW");
@@ -55,14 +56,15 @@ describe("MI PRIMER TOKEN TESTING", function () {
     });
 
     it("No permite acuñar sin privilegio", async () => {
-      var msgError = "No tiene privilegio para acuñar NFT";
-      expect(await nftContract.connect(alice).safeMint(alice.address,1).to.be.revertedWith(msgError));
+      var msgError = "AccessControl: account " + bob.address.toLowerCase() + " is missing role " + MINTER_ROLE;
+      //var msgError = "No tiene privilegio para acuñar NFT";
+      await expect(nftContract.connect(bob).safeMint(bob.address,1)).to.be.revertedWith(msgError);
     });
 
     it("No permite acuñar doble id de Nft", async () => {
       var msgError = "El token seleccionado ya fue emitido";
-      await nftContract.connect(alice).safeMint(alice.address,1);
-      expect(await nftContract.connect(alice).safeMint(alice.address,1).to.be.revertedWith(msgError));
+      await nftContract.connect(bob).safeMint(bob.address,1);
+      expect(await nftContract.connect(bob).safeMint(bob.address,1).to.be.revertedWith(msgError));
     });
 
     it("Verifica rango de Nft: [1, 30]", async () => {
@@ -84,7 +86,7 @@ describe("MI PRIMER TOKEN TESTING", function () {
   describe("Public Sale Smart Contract", () => {
     // Se publica el contrato antes de cada test
     beforeEach(async () => {
-      await deployPublicSaleSC();
+      //await deployPublicSaleSC();
     });
 
     it("No se puede comprar otra vez el mismo ID", async () => {
