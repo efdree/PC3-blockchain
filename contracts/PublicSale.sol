@@ -101,6 +101,8 @@ contract PublicSale is
             (priceNft * 90) / 100
         );
         // EMITIR EVENTO para que lo escuche OPEN ZEPPELIN DEFENDER
+        existNFT[_id] = true;
+
         emit DeliverNft(msg.sender, _id);
     }
 
@@ -170,11 +172,20 @@ contract PublicSale is
         uint256 priceGroupTwo;
         uint256 priceGroupThree;
         if (_id > 0 && _id < 11) {
-            return priceGroupOne;
+            return priceGroupOne = 500 * 10 ** 18;
         } else if (_id > 10 && _id < 21) {
-            return priceGroupTwo;
+            return priceGroupTwo = 1000 * _id * 10 ** 18;
         } else {
-            return priceGroupThree;
+            if (((block.timestamp - startDate) / 3600) > 0) {
+                return
+                    priceGroupThree =
+                        10000 *
+                        10 ** 18 +
+                        (((block.timestamp - startDate) / 3600) % 2) *
+                        1000;
+            } else {
+                return priceGroupThree = 10000 * 10 ** 18;
+            }
         }
     }
 
