@@ -6,6 +6,7 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "hardhat/console.sol";
 
 contract PublicSale is
     Initializable,
@@ -70,6 +71,8 @@ contract PublicSale is
         // 2 - el msg.sender haya dado allowance a este contrato en suficiente de MPRTKN
         //         * Mensaje de error: "Public Sale: Not enough allowance"
         uint256 priceNft = _getPriceById(_id);
+        require(_id > 0 && _id < 30, "NFT: Token id out of range");
+
         require(
             miPrimerToken.allowance(msg.sender, address(this)) >= priceNft,
             "Public Sale: Not enough allowance"
@@ -82,7 +85,7 @@ contract PublicSale is
         );
         // 4 - el _id se encuentre entre 1 y 30
         //         * Mensaje de error: "NFT: Token id out of range"
-        require(_id > 0 && _id < 30, "NFT: Token id out of range");
+
         // Obtener el precio segun el id
 
         // Purchase fees
@@ -128,14 +131,14 @@ contract PublicSale is
             // usar '.transfer' para enviar ether de vuelta al usuario
             payable(msg.sender).transfer(msg.value - 0.01 ether);
         }
-
+        existNFT[nftId] = true;
         // EMITIR EVENTO para que lo escuche OPEN ZEPPELIN DEFENDER
         emit DeliverNft(msg.sender, nftId);
     }
 
     // PENDING
     // Crear el metodo receive
-    function receive() external payable {
+    receive() external payable {
         depositEthForARandomNft();
     }
 
@@ -152,6 +155,7 @@ contract PublicSale is
                 count++;
             }
         }
+        require(count > 0, "NFT No disponible");
         uint256[] memory array = new uint256[](count);
         uint256 indexArray = 0;
         for (uint256 i = 0; i < 30; i++) {
@@ -177,12 +181,14 @@ contract PublicSale is
             return priceGroupTwo = 1000 * _id * 10 ** 18;
         } else {
             if (((block.timestamp - startDate) / 3600) > 0) {
-                return
-                    priceGroupThree =
-                        10000 *
-                        10 ** 18 +
-                        (((block.timestamp - startDate) / 3600) % 2) *
-                        1000;
+                priceGroupThree =
+                    10000 *
+                    10 ** 18 +
+                    (((block.timestamp - startDate) / 3600)) *
+                    1000 *
+                    10 ** 18;
+                if (priceGroupThree > MAX_PRICE_NFT) return MAX_PRICE_NFT;
+                else return priceGroupThree;
             } else {
                 return priceGroupThree = 10000 * 10 ** 18;
             }

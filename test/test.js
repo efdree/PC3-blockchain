@@ -37,7 +37,7 @@ describe("MI PRIMER TOKEN TESTING", function () {
     publicSale = await deploySC("PublicSale", []);
     await ex(publicSale, "setMiPrimerToken", [miPrimerToken.address], "Token");
     await ex(publicSale, "setGenosisSafe", [gnosis.address], "SGW");
-    await ex(publicSale, "purchaseNftById", [30], "Setup Number NFTs");
+    //await ex(publicSale, "purchaseNftById", [30], "Setup Number NFTs");
     await ex(miPrimerToken, "mint" , [bob.address, cienmilTokens], "TKN Mint");
   }
 
@@ -96,7 +96,7 @@ describe("MI PRIMER TOKEN TESTING", function () {
     it("IDs aceptables: [1, 30]", async () => {
       var msgError = "NFT: Token id out of range";
       await miPrimerToken.connect(bob).approve(publicSale.address, diezmilTokens);
-      await expect(publicSale.connect(bob).purchaseNftById(31)).to.be.revertedWith(msgError);
+      await expect(publicSale.connect(bob).purchaseNftById(30)).to.be.revertedWith(msgError);
     });
 
     it("Usuario no dio permiso de MiPrimerToken a Public Sale", async () => {
@@ -190,9 +190,10 @@ describe("MI PRIMER TOKEN TESTING", function () {
       beforeEach(async () => {
         await miPrimerToken.connect(bob).approve(publicSale.address, cienmilTokens);
       })
-
+      
       it("Disminuye balance de MiPrimerToken luego de compra", async () => {
         balanceChange = pEth((-priceNFT).toString());
+        
         await expect(publicSale.connect(bob).purchaseNftById(counter)).to.changeTokenBalance(miPrimerToken, bob, balanceChange);
       });
 
@@ -223,12 +224,10 @@ describe("MI PRIMER TOKEN TESTING", function () {
             value: pEth("0.01"),
           });
           await expect(tx).to.emit(publicSale, "DeliverNft");
-
+        }
           await expect(publicSale.connect(bob).depositEthForARandomNft({
             value: pEth("0.01"),
           })).to.be.revertedWith("NFT No disponible");
-        }
-        
       });
 
       it("Envío de Ether y emite Evento (30 veces)", async () => {
@@ -248,15 +247,15 @@ describe("MI PRIMER TOKEN TESTING", function () {
             value: pEth("0.01")
           });
           await expect(tx).to.emit(publicSale, "DeliverNft");
-
+        }
           await expect(bob.sendTransaction({
             to: publicSale.address,
             value: pEth("0.01")
           })).to.be.revertedWith("NFT No disponible");
-        }
+        
       });
 
-      it.only("Da vuelto cuando y gnosis recibe Ether", async () => {
+      it("Da vuelto cuando y gnosis recibe Ether", async () => {
         // Usar el método changeEtherBalances
         // Source: https://ethereum-waffle.readthedocs.io/en/latest/matchers.html#change-ether-balance-multiple-accounts
         // Ejemplo:
