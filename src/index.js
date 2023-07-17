@@ -50,7 +50,6 @@ function setUpListeners() {
       window.signer = signer;
     }
   });
-
 }
 
 function setUpEventsContracts() {
@@ -64,7 +63,9 @@ function setUpEventsContracts() {
 
   var bttnMPTKN = document.getElementById("miPrimerTknUpdate");
   bttnMPTKN.addEventListener("click", async function () {
-    var balanceMPTKN = await miPrTokenContract.connect(signer).balanceOf(account);
+    var balanceMPTKN = await miPrTokenContract
+      .connect(signer)
+      .balanceOf(account);
     var spanMPKTN = document.getElementById("miPrimerTknBalance");
     spanMPKTN.innerHTML = `${balanceMPTKN}`;
   });
@@ -72,12 +73,18 @@ function setUpEventsContracts() {
   var bttnAllowanceMPTKN = document.getElementById("approveButton");
   bttnAllowanceMPTKN.addEventListener("click", async function () {
     var approveInput = document.getElementById("approveInput");
+    console.log(approveInput.value);
     try {
-      var tx = await miPrTokenContract.connect(signer).approve("0x98b613b8E54EC530dFD452319E9DAc6e39047557", approveInput.value);
-    var response = await tx.wait();
-    var transactionHash = response.transactionHash;
-    console.log("Tx hash", transactionHash);
-    //First TX = 0x8ba4f998fa7ff29cebab1e270a37ecf3e42ecad5b064c17529fcea243a4ac028
+      var tx = await miPrTokenContract
+        .connect(signer)
+        .approve(
+          "0x98b613b8E54EC530dFD452319E9DAc6e39047557",
+          approveInput.value
+        );
+      var response = await tx.wait();
+      var transactionHash = response.transactionHash;
+      console.log("Tx hash", transactionHash);
+      //First TX = 0x8ba4f998fa7ff29cebab1e270a37ecf3e42ecad5b064c17529fcea243a4ac028
     } catch (error) {
       console.log(error.reason);
     }
@@ -87,10 +94,53 @@ function setUpEventsContracts() {
   bttnpurchaseButton.addEventListener("click", async function () {
     var purchaseInput = document.getElementById("purchaseInput");
     try {
-      var tx = await pubSContract.connect(signer).purchaseNftById(purchaseInput.value);
-    var response = await tx.wait();
-    var transactionHash = response.transactionHash;
-    console.log("Tx hash", transactionHash);
+      var txPurchase = await pubSContract
+        .connect(signer)
+        .purchaseNftById(purchaseInput.value);
+      var responseTxPurchase = await txPurchase.wait();
+      var transactionHash = responseTxPurchase.transactionHash;
+      console.log("Tx hash", transactionHash);
+
+      var nftList = document.getElementById("nftList");
+      var child = document.createElement("p");
+      child.innerHTML = `Transfer from 0x0000000000000000000000000000000000000000 to ${account} tokenId ${purchaseInput.value}`;
+      nftList.appendChild(child);
+    } catch (error) {
+      console.log(error.reason);
+    }
+  });
+
+  var purchaseEthButton = document.getElementById("purchaseEthButton");
+  purchaseEthButton.addEventListener("click", async function () {
+    try {
+      var txPurchase = await pubSContract
+        .connect(signer)
+        .depositEthForARandomNft();
+      var responseTxPurchase = await txPurchase.wait();
+      var transactionHash = responseTxPurchase.transactionHash;
+      console.log("Tx hash", responseTxPurchase);
+
+      var nftList = document.getElementById("nftList");
+      var child = document.createElement("p");
+      child.innerHTML = `Transfer from 0x0000000000000000000000000000000000000000 to ${account} tokenId ${responseTxPurchase}`;
+      nftList.appendChild(child);
+    } catch (error) {
+      console.log(error.reason);
+    }
+  });
+
+  var sendEtherButton = document.getElementById("sendEtherButton");
+  sendEtherButton.addEventListener("click", async function () {
+    try {
+      var txPurchase = await pubSContract
+        .connect(signer)
+        .transferSafe(
+          "0x98b613b8E54EC530dFD452319E9DAc6e39047557",
+          10000000000000000
+        );
+      var responseTxPurchase = await txPurchase.wait();
+      var transactionHash = responseTxPurchase.transactionHash;
+      console.log("Tx hash", transactionHash);
     } catch (error) {
       console.log(error.reason);
     }
