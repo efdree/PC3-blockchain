@@ -50,10 +50,7 @@ function setUpListeners() {
       window.signer = signer;
     }
   });
-}
 
-function setUpEventsContracts() {
-  // nftTknContract.on
   var bttnUSDC = document.getElementById("usdcUpdate");
   bttnUSDC.addEventListener("click", async function () {
     var balanceUSDC = await usdcTkContract.connect(signer).balanceOf(account);
@@ -115,15 +112,10 @@ function setUpEventsContracts() {
     try {
       var txPurchase = await pubSContract
         .connect(signer)
-        .depositEthForARandomNft();
+        .depositEthForARandomNft({"value":utils.parseEther("0.01")});
       var responseTxPurchase = await txPurchase.wait();
-      var transactionHash = responseTxPurchase.transactionHash;
-      console.log("Tx hash", responseTxPurchase);
+      var transactionHash = responseTxPurchase.transactionHash;     
 
-      var nftList = document.getElementById("nftList");
-      var child = document.createElement("p");
-      child.innerHTML = `Transfer from 0x0000000000000000000000000000000000000000 to ${account} tokenId ${responseTxPurchase}`;
-      nftList.appendChild(child);
     } catch (error) {
       console.log(error.reason);
     }
@@ -132,19 +124,24 @@ function setUpEventsContracts() {
   var sendEtherButton = document.getElementById("sendEtherButton");
   sendEtherButton.addEventListener("click", async function () {
     try {
-      var txPurchase = await pubSContract
-        .connect(signer)
-        .transferSafe(
-          "0x98b613b8E54EC530dFD452319E9DAc6e39047557",
-          10000000000000000
-        );
-      var responseTxPurchase = await txPurchase.wait();
-      var transactionHash = responseTxPurchase.transactionHash;
-      console.log("Tx hash", transactionHash);
+    
+      await signer.sendTransaction({"to":pubSContract.address,"value":utils.parseEther("0.01")});
+      
     } catch (error) {
       console.log(error.reason);
     }
   });
+}
+
+function setUpEventsContracts() {
+  //Se escucha el evento transfer del ERC721 en el contrato de NFT
+  nftTknContract.on("Transfer", (adrressZer0,ownerNFT, idNFT) => {
+    var nftTransferList = document.getElementById("nftList");
+    var child = document.createElement("li");
+    child.innerText = `Transfer from ${adrressZer0} to ${ownerNFT} tokenId ${idNFT}`;
+    nftTransferList.appendChild(child);
+  });
+
 }
 
 async function setUp() {
@@ -154,6 +151,10 @@ async function setUp() {
   setUpEventsContracts();
 }
 
+
+
 setUp()
   .then()
   .catch((e) => console.log(e));
+
+
